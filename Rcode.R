@@ -105,9 +105,6 @@ plotDispEsts(deg)
 #MA plot
 plotMA(DESeqRes) 
 
-# Adding Gene name columns to data frame
-
-
 # Volcono Plot
 EnhancedVolcano(DESeqRes_df, 
                 lab = rownames(DESeqRes_df), 
@@ -120,13 +117,51 @@ EnhancedVolcano(DESeqRes_df,
                 drawConnectors = TRUE,
                 max.overlaps = 300)
 
+# -------------------------------
+# Adding Gene name columns to count_mat_df_orig to DESeqRes_df
+# resource_df == DESeqRes_df
+# origin_count_matrix_df == count_mat_df_orig
+
+func_create_gene_names_col <- function(resource_df, origin_count_matrix_df){
+  
+  # Creating copy of resource_df (DESeqRes_df)
+  copy_resource_df <- resource_df
+  copy_resource_df$Gene <- NA
+  
+  for(rows_resource_df in 1:nrow(resource_df)){
+    for(rows_origin_df in 1:nrow(origin_count_matrix_df)){
+      if(rows_resource_df == rows_origin_df){
+        copy_resource_df[rows_resource_df, "Gene"] = 
+          origin_count_matrix_df[rows_origin_df, "Gene"]
+      }
+    }
+  }
+  return(copy_resource_df)
+}
+
+DESeqRes_df_Genenames <- func_create_gene_names_col(DESeqRes_df, count_mat_df_orig)
+head(DESeqRes_df_Genenames)
+
+#-----------------------
+# Same Volcono Plot with gene names
+EnhancedVolcano(DESeqRes_df, 
+                lab = DESeqRes_df_Genenames$Gene, 
+                x = 'log2FoldChange', 
+                y = 'padj', 
+                subtitle = 'Positive vs Negative', 
+                labSize = 3, 
+                pCutoff = 0.05,
+                FCcutoff = 1,
+                drawConnectors = TRUE,
+                max.overlaps = 300)
+
+# ----------------------
 # Heat Map
 top_genes <- DESeqRes_df %>% 
   arrange(padj) %>%
   head(30)
 
 # Normalize deg data (DESec(dds))
-
 mat <- counts(deg, normalized = T)[rownames(top_genes),]
 head(mat, 5)
 
