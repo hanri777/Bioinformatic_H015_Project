@@ -178,6 +178,7 @@ Heatmap(mat.z, cluster_rows = T, cluster_columns = T,
         column_labels = colnames(mat.z), 
         row_labels = top_genes$baseMean)
 
+#-----------------------------
 # Alternative better HeatMap
 rltfd <- rlog(deg, blind=FALSE)
 DEG.idx <- which(DESeqRes$padj <= 0.05 & 
@@ -188,4 +189,17 @@ pheatmap(assay(rltfd)[DEG.idx,],
          treeheight_row = 0, 
          treeheight_col = 0, 
          scale = "row")
+
+# Alternative better HeatMap with gene names
+DEG.idx <- which(DESeqRes_df_Genenames$padj <= 0.05 & 
+                   abs(DESeqRes_df_Genenames$log2FoldChange) > 1)
+DESeqRes_df_Genenames[DEG.idx,]
+
+pheatmap(assay(rltfd)[DEG.idx,], 
+         treeheight_row = 0, 
+         treeheight_col = 0, 
+         scale = "row",
+         labels_row = DESeqRes_df_Genenames$Gene
+         )
+
 
