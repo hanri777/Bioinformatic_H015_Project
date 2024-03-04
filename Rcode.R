@@ -40,6 +40,7 @@ count_mat_df <- count_mat_df[, sorted_colnames, drop = FALSE]
 # Meta Data
 metadata <- read_xlsx('count_meta_origin_files/MetaShort_HIPO_15_negative_and_positive_samples.xlsx')
 metadata_df <- as.data.frame(metadata)
+class(metadata_df)
 
 # Set Samples column as row names
 rownames(metadata_df) <- metadata_df$Samples
@@ -73,21 +74,63 @@ dds$status <- relevel(dds$status, ref = "negative")
 # Perform Differential Analysis of Gene
 deg <- DESeq(dds)
 
-# Getting results, sorting and saving in .csv file as data frame
+# Getting results and sorting as data frame
 DESeqRes <- results(deg, alpha = 0.05)
 DESeqRes <- DESeqRes[!is.na(DESeqRes$padj),]
 DESeqRes <- DESeqRes[order(DESeqRes$padj),]
 summary(DESeqRes)
 DESeqRes_df <- as.data.frame(DESeqRes)
-write.csv(DESeqRes_df, "output_files/DESeqResult_df.csv")
+class(DESeqRes_df)
 
 #Getting idea about best Genes
 best_genes <- DESeqRes_df %>%
   arrange(padj) %>%
   head(20)
 best_genes
-write.csv(best_genes, "output_files/best_genes.csv")
+class(best_genes)
 
+#-------------------
+# Creating function  
+# Adding Gene name columns to count_mat_df_orig to DESeqRes_df and best genes
+# resource_df == DESeqRes_df or best_genes
+# origin_count_matrix_df == count_mat_df_orig
+  
+func_create_gene_names_col <- function(resource_df, origin_count_matrix_df){
+    
+  # Creating copy of resource_df (DESeqRes_df)
+  copy_resource_df <- resource_df
+  # Creating new empty column
+  copy_resource_df$Gene <-NA
+  # Creatubg copy of origin_count_matrix_df (count_mat_df_orig)
+  copy_origin_count_matrix_df <- origin_count_matrix_df
+    
+  for(rows_resource_df in rownames(copy_resource_df)){
+    for(rows_origin_count_matrix_df in rownames(copy_origin_count_matrix_df)){
+      if(rows_resource_df == rows_origin_count_matrix_df){
+        copy_resource_df[rows_resource_df, "Gene"] = 
+          copy_origin_count_matrix_df[rows_origin_count_matrix_df, "Gene"]
+      }
+    }
+  }
+    
+  return(copy_resource_df)
+}
+
+#------------
+# Calling function  
+best_genes_names <- func_create_gene_names_col(best_genes, count_mat_df_orig)
+best_genes_names
+  
+DESeqRes_df_Genenames <- func_create_gene_names_col(DESeqRes_df, count_mat_df_orig)
+head(DESeqRes_df_Genenames)  
+  
+#------------
+# Writing to .csv file
+write.csv(DESeqRes_df_Genenames, "output_files/DESeqResult_df_Genenames.csv")
+write.csv(best_genes_names, "output_files/best_genes_names.csv")
+
+
+#-------------------
 ### Plots
 
 ##Quality Check For RNA-Sec Data
@@ -105,6 +148,7 @@ plotDispEsts(deg)
 #MA plot
 plotMA(DESeqRes) 
 
+#------------------
 # Volcono Plot
 EnhancedVolcano(DESeqRes_df, 
                 lab = rownames(DESeqRes_df), 
@@ -116,31 +160,6 @@ EnhancedVolcano(DESeqRes_df,
                 FCcutoff = 1,
                 drawConnectors = TRUE,
                 max.overlaps = 300)
-
-# -------------------------------
-# Adding Gene name columns to count_mat_df_orig to DESeqRes_df
-# resource_df == DESeqRes_df
-# origin_count_matrix_df == count_mat_df_orig
-
-func_create_gene_names_col <- function(resource_df, origin_count_matrix_df){
-  
-  # Creating copy of resource_df (DESeqRes_df)
-  copy_resource_df <- resource_df
-  copy_resource_df$Gene <- NA
-  
-  for(rows_resource_df in 1:nrow(resource_df)){
-    for(rows_origin_df in 1:nrow(origin_count_matrix_df)){
-      if(rows_resource_df == rows_origin_df){
-        copy_resource_df[rows_resource_df, "Gene"] = 
-          origin_count_matrix_df[rows_origin_df, "Gene"]
-      }
-    }
-  }
-  return(copy_resource_df)
-}
-
-DESeqRes_df_Genenames <- func_create_gene_names_col(DESeqRes_df, count_mat_df_orig)
-head(DESeqRes_df_Genenames)
 
 #-----------------------
 # Same Volcono Plot with gene names
