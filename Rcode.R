@@ -178,10 +178,15 @@ EnhancedVolcano(DESeqRes_df,
 # Heat Map
 top_genes <- DESeqRes_df %>% 
   arrange(padj) %>%
-  head(30)
+  head(20)
+class(top_genes)
+
+best_genes_names
+
 
 # Normalize deg data (DESec(dds))
-mat <- counts(deg, normalized = T)[rownames(top_genes),]
+mat <- counts(deg, normalized = T)[rownames(best_genes_names),]
+#mat <- counts(deg, normalized = T)[rownames(top_genes),]
 head(mat, 5)
 
 # Get z values
@@ -195,23 +200,28 @@ head(mat.z, 5)
 #Build Heatmap
 Heatmap(mat.z, cluster_rows = T, cluster_columns = T, 
         column_labels = colnames(mat.z), 
-        row_labels = top_genes$baseMean)
+        #row_labels = top_genes$baseMean
+        row_labels = best_genes_names$Gene
+        )
 
 #-----------------------------
-# Alternative better HeatMap
+# Alternative HeatMap
 rltfd <- rlog(deg, blind=FALSE)
-DEG.idx <- which(DESeqRes$padj <= 0.05 & 
-                   abs(DESeqRes$log2FoldChange) > 1)
-DESeqRes[DEG.idx,]
 
-pheatmap(assay(rltfd)[DEG.idx,], 
-         treeheight_row = 0, 
-         treeheight_col = 0, 
-         scale = "row")
+#DEG.idx <- which(DESeqRes$padj <= 0.05 & 
+#                   abs(DESeqRes$log2FoldChange) > 1)
+#class(DESeqRes)
+#DESeqRes[DEG.idx,]
 
-# Alternative better HeatMap with gene names
+#pheatmap(assay(rltfd)[DEG.idx,], 
+#         treeheight_row = 0, 
+#         treeheight_col = 0, 
+#         scale = "row")
+
+# Alternative HeatMap with gene names
 DEG.idx <- which(DESeqRes_df_Genenames$padj <= 0.05 & 
                    abs(DESeqRes_df_Genenames$log2FoldChange) > 1)
+class(DESeqRes_df_Genenames)
 DESeqRes_df_Genenames[DEG.idx,]
 
 pheatmap(assay(rltfd)[DEG.idx,], 
