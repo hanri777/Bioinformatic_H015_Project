@@ -32,6 +32,7 @@ count_mat_df <- count_mat_df_orig[, 5 : length(count_mat_df_orig)]
 dim(count_mat_df)
 head(count_mat_df)
 class(count_mat_df)
+str(count_mat_df)
 
 # Sorting columns
 sorted_colnames <- sort(colnames(count_mat_df))
@@ -44,7 +45,6 @@ class(metadata_df)
 
 # Set Samples column as row names
 rownames(metadata_df) <- metadata_df$Samples
-class(metadata_df)
 str(metadata_df)
 dim(metadata_df)
 head(metadata_df)
@@ -61,14 +61,14 @@ dds <- DESeqDataSetFromMatrix(countData = count_mat_df,
                               design = ~ status)
 dds
 
-# Removing Low Counts Reads Genes 
+# Removing Low Counts Reads Genes (leaky expression of genes)
 keep <- rowSums(counts(dds)) >= 10
 dds <- dds[keep,]
 dds
 
 #Differential Analysis of Gene (compare treated with untreated)
 
-# Set reference value for DEG analisys 
+# Set reference value for DEG analysis 
 dds$status <- relevel(dds$status, ref = "negative")
 
 # Perform Differential Analysis of Gene
@@ -89,6 +89,7 @@ best_genes <- DESeqRes_df %>%
 best_genes
 class(best_genes)
 
+# Addin Gene Names
 #-------------------
 # Creating function  
 # Adding Gene name columns to count_mat_df_orig to DESeqRes_df and best genes
