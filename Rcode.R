@@ -175,19 +175,11 @@ EnhancedVolcano(DESeqRes_df,
                 drawConnectors = TRUE,
                 max.overlaps = 300)
 
-# ----------------------
+
 # Heat Map
-top_genes <- DESeqRes_df %>% 
-  arrange(padj) %>%
-  head(20)
-class(top_genes)
-
-best_genes_names
-
-
+# ----------------------
 # Normalize deg data (DESec(dds))
 mat <- counts(deg, normalized = T)[rownames(best_genes_names),]
-#mat <- counts(deg, normalized = T)[rownames(top_genes),]
 head(mat, 5)
 
 # Get z values
